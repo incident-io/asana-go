@@ -301,6 +301,16 @@ func (t *Task) Update(client *Client, update *UpdateTaskRequest) error {
 	return err
 }
 
+// Unassign removes the current assignee
+func (t *Task) Unassign(client *Client) error {
+	client.trace("Removing assignee from %q", t.Name)
+
+	err := client.put(fmt.Sprintf("/tasks/%s", t.ID), &struct {
+		Assignee *string `json:"assignee"`
+	}{}, t)
+	return err
+}
+
 func (t *Task) Delete(client *Client) error {
 	client.info("Deleting task %q", t.Name)
 

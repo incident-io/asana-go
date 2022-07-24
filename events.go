@@ -13,10 +13,14 @@ type Event struct {
 		ID           string `json:"gid"`
 		ResourceType string `json:"resource_type"`
 	} `json:"user"`
-	CreatedAt time.Time   `json:"created_at"`
-	Action    string      `json:"action"`
-	Parent    interface{} `json:"parent"`
-	Change    struct {
+	CreatedAt time.Time `json:"created_at"`
+	Action    string    `json:"action"`
+	Parent    struct {
+		ID              string `json:"gid"`
+		ResourceType    string `json:"resource_type"`
+		ResourceSubtype string `json:"resource_subtype"`
+	} `json:"parent"`
+	Change struct {
 		Field    string `json:"field"`
 		Action   string `json:"action"`
 		NewValue struct {

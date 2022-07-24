@@ -6,7 +6,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var defaultOAuthEndpoint = oauth2.Endpoint{
+var DefaultOAuthEndpoint = oauth2.Endpoint{
 	AuthURL:  "https://app.asana.com/-/oauth_authorize",
 	TokenURL: "https://app.asana.com/-/oauth_token",
 }
@@ -27,7 +27,7 @@ type App struct {
 
 // NewApp creates a new App with the provided configuration
 func NewApp(config *AppConfig) *App {
-	endpoint := defaultOAuthEndpoint
+	endpoint := DefaultOAuthEndpoint
 	if config.DisplayUI {
 		endpoint.AuthURL += "?display_ui=always"
 	}

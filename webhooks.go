@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+type Filter struct {
+	Action          string   `json:"action"`
+	Fields          []string `json:"fields,omitempty"`
+	ResourceSubtype string   `json:"resource_subtype"`
+	ResourceType    string   `json:"resource_type"`
+}
+
 type Webhook struct {
 	ID           string `json:"gid"`
 	ResourceType string `json:"resource_type"`
@@ -16,23 +23,12 @@ type Webhook struct {
 		ResourceType string `json:"resource_type"`
 		Name         string `json:"name"`
 	} `json:"resource"`
-	Target    string    `json:"target"`
-	CreatedAt time.Time `json:"created_at"`
-	Filters   []struct {
-		Action          string   `json:"action"`
-		Fields          []string `json:"fields"`
-		ResourceSubtype string   `json:"resource_subtype"`
-		ResourceType    string   `json:"resource_type"`
-	} `json:"filters"`
+	Target             string    `json:"target"`
+	CreatedAt          time.Time `json:"created_at"`
+	Filters            []Filter  `json:"filters"`
 	LastFailureAt      time.Time `json:"last_failure_at"`
 	LastFailureContent string    `json:"last_failure_content"`
 	LastSuccessAt      time.Time `json:"last_success_at"`
-}
-type Filters []struct {
-	Action          string   `json:"action"`
-	Fields          []string `json:"fields"`
-	ResourceSubtype string   `json:"resource_subtype"`
-	ResourceType    string   `json:"resource_type"`
 }
 
 // Webhooks returns the compact records for all webhooks your app has registered for the authenticated user in the given workspace.
@@ -77,7 +73,7 @@ func (w *Workspace) AllWebhooks(client *Client, options ...*Options) ([]*Webhook
 }
 
 // CreateWebhook registers a new webhook
-func (c *Client) CreateWebhook(resource, target string, filters Filters) (*Webhook, error) {
+func (c *Client) CreateWebhook(resource, target string, filters []Filter) (*Webhook, error) {
 	m := map[string]interface{}{}
 	m["resource"] = resource
 	m["target"] = target

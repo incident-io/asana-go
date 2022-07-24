@@ -170,6 +170,14 @@ func (t *Task) CreateComment(client *Client, story *StoryBase) (*Story, error) {
 	return result, err
 }
 
+// Fetch loads the full details for this Story
+func (s *Story) Fetch(client *Client) error {
+	client.trace("Loading story details for %q", s.ID)
+
+	_, err := client.get(fmt.Sprintf("/stories/%s", s.ID), nil, s)
+	return err
+}
+
 // UpdateStory updates the story and returns the full record for the updated story.
 // Only comment stories can have their text updated, and only comment stories and attachment stories can be pinned.
 // Only one of text and html_text can be specified.

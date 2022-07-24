@@ -48,6 +48,27 @@ func (u *User) Fetch(client *Client, options ...*Options) error {
 	return err
 }
 
+type TaskList struct {
+	ID           string `json:"gid"`
+	ResourceType string `json:"resource_type"`
+	Name         string `json:"name"`
+}
+
+// GetTaskList fetches the task list for this User on a worpkspace
+func (u *User) GetTaskList(client *Client, workspaceID string, options ...*Options) (*TaskList, error) {
+	client.trace("Getting task list for user %q", u.ID)
+	var result *TaskList
+
+	workspace := &Options{
+		Workspace: workspaceID,
+	}
+
+	allOptions := append([]*Options{workspace}, options...)
+
+	_, err := client.get(fmt.Sprintf("/users/%s/user_task_list", u.ID), nil, &result, allOptions...)
+	return result, err
+}
+
 // Users returns the compact records for all users in the organization visible to the authorized user
 func (w *Workspace) Users(client *Client, options ...*Options) ([]*User, *NextPage, error) {
 	client.trace("Listing users in workspace %s...\n", w.ID)
