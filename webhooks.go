@@ -10,8 +10,8 @@ import (
 type Filter struct {
 	Action          string   `json:"action"`
 	Fields          []string `json:"fields,omitempty"`
-	ResourceSubtype string   `json:"resource_subtype"`
 	ResourceType    string   `json:"resource_type"`
+	ResourceSubtype string   `json:"resource_subtype,omitempty"`
 }
 
 type Webhook struct {
