@@ -1,10 +1,22 @@
 package asana
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash"
+	"io"
+	"net/http"
 	"time"
+)
+
+// Signature headers
+const (
+	hSecret    = "X-Hook-Secret"
+	hSignature = "X-Hook-Signature"
 )
 
 type Filter struct {
@@ -92,11 +104,51 @@ func (c *Client) DeleteWebhook(ID string) error {
 	return err
 }
 
-func ParseHook(payload []byte) ([]Event, error) {
+func ParseHook(body io.ReadCloser) ([]Event, error) {
 	ed := EventData{}
-	if err := json.Unmarshal(payload, &ed); err != nil {
+	if err := json.NewDecoder(body).Decode(&ed); err != nil {
 		return nil, errors.New("Cannot decode payload")
 	}
 
 	return ed.Events, nil
+}
+
+// SecretsVerifier contains the information needed to verify that the request comes from Asana
+type SecretsVerifier struct {
+	signature []byte
+	hmac      hash.Hash
+}
+
+// NewSecretsVerifier returns a SecretsVerifier object in exchange for an http.Header object and signing secret
+func NewSecretsVerifier(header http.Header, secret string) (sv SecretsVerifier, err error) {
+	var bsignature []byte
+
+	signature := header.Get(hSignature)
+	if signature == "" {
+		return SecretsVerifier{}, errors.New("Missing header")
+	}
+
+	if bsignature, err = hex.DecodeString(signature); err != nil {
+		return SecretsVerifier{}, err
+	}
+
+	hash := hmac.New(sha256.New, []byte(secret))
+
+	return SecretsVerifier{
+		signature: bsignature,
+		hmac:      hash,
+	}, nil
+}
+
+func (v *SecretsVerifier) Write(body []byte) (n int, err error) {
+	return v.hmac.Write(body)
+}
+
+// Ensure compares the signature sent from Slack with the actual computed hash to judge validity
+func (v SecretsVerifier) Ensure() error {
+	computed := v.hmac.Sum(nil)
+	if hmac.Equal(computed, v.signature) {
+		return nil
+	}
+	return fmt.Errorf("Computed unexpected signature of: %s", hex.EncodeToString(computed))
 }

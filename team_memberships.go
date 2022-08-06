@@ -14,12 +14,12 @@ type TeamMembership struct {
 	IsGuest bool `json:"is_guest"`
 
 	Team struct {
-		ID string `json:"gid"`
+		ID   string `json:"gid"`
 		Name string `json:"name"`
 	} `json:"team"`
 
 	User struct {
-		ID string `json:"gid"`
+		ID   string `json:"gid"`
 		Name string `json:"name"`
 	} `json:"user"`
 }
