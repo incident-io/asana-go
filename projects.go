@@ -1,6 +1,7 @@
 package asana
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -165,10 +166,10 @@ type Project struct {
 }
 
 // Fetch loads the full details for this Project
-func (p *Project) Fetch(client *Client, opts ...*Options) error {
+func (p *Project) Fetch(ctx context.Context, client *Client, opts ...*Options) error {
 	client.trace("Loading project details for %q", p.Name)
 
-	_, err := client.get(fmt.Sprintf("/projects/%s", p.ID), nil, p, opts...)
+	_, err := client.get(ctx, fmt.Sprintf("/projects/%s", p.ID), nil, p, opts...)
 	return err
 }
 
@@ -178,21 +179,21 @@ func (p *Project) Fetch(client *Client, opts ...*Options) error {
 // or else you may overwrite changes made by another user since you last retrieved the task.
 //
 // Updates the referenced project object
-func (p *Project) Update(client *Client, request *UpdateProjectRequest, opts ...*Options) error {
+func (p *Project) Update(ctx context.Context, client *Client, request *UpdateProjectRequest, opts ...*Options) error {
 	client.trace("Update project %q", p.Name)
 
-	err := client.put(fmt.Sprintf("/projects/%s", p.ID), request, p, opts...)
+	err := client.put(ctx, fmt.Sprintf("/projects/%s", p.ID), request, p, opts...)
 	return err
 }
 
 // Projects returns a list of projects in this workspace
-func (w *Workspace) Projects(client *Client, options ...*Options) ([]*Project, *NextPage, error) {
+func (w *Workspace) Projects(ctx context.Context, client *Client, options ...*Options) ([]*Project, *NextPage, error) {
 	client.trace("Listing projects in %q", w.Name)
 
 	var result []*Project
 
 	// Make the request
-	nextPage, err := client.get(fmt.Sprintf("/workspaces/%s/projects", w.ID), nil, &result, options...)
+	nextPage, err := client.get(ctx, fmt.Sprintf("/workspaces/%s/projects", w.ID), nil, &result, options...)
 	return result, nextPage, err
 }
 
@@ -202,7 +203,7 @@ type favoritesRequestParams struct {
 }
 
 // FavoriteProjects returns a list of the current user's favorite projects in this workspace
-func (w *Workspace) FavoriteProjects(client *Client, options ...*Options) ([]*Project, *NextPage, error) {
+func (w *Workspace) FavoriteProjects(ctx context.Context, client *Client, options ...*Options) ([]*Project, *NextPage, error) {
 	client.trace("Listing favorite projects in %q", w.Name)
 
 	var result []*Project
@@ -212,16 +213,16 @@ func (w *Workspace) FavoriteProjects(client *Client, options ...*Options) ([]*Pr
 		ResourceType: "project",
 		Workspace:    w.ID,
 	}
-	user, err := client.CurrentUser()
+	user, err := client.CurrentUser(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
-	nextPage, err := client.get(fmt.Sprintf("/users/%s/favorites", user.ID), query, &result, options...)
+	nextPage, err := client.get(ctx, fmt.Sprintf("/users/%s/favorites", user.ID), query, &result, options...)
 	return result, nextPage, err
 }
 
 // AllProjects repeatedly pages through all available projects in a workspace
-func (w *Workspace) AllProjects(client *Client, options ...*Options) ([]*Project, error) {
+func (w *Workspace) AllProjects(ctx context.Context, client *Client, options ...*Options) ([]*Project, error) {
 	var allProjects []*Project
 	nextPage := &NextPage{}
 
@@ -235,7 +236,7 @@ func (w *Workspace) AllProjects(client *Client, options ...*Options) ([]*Project
 		}
 
 		allOptions := append([]*Options{page}, options...)
-		projects, nextPage, err = w.Projects(client, allOptions...)
+		projects, nextPage, err = w.Projects(ctx, client, allOptions...)
 		if err != nil {
 			return nil, err
 		}
@@ -246,7 +247,7 @@ func (w *Workspace) AllProjects(client *Client, options ...*Options) ([]*Project
 }
 
 // AllProjects repeatedly pages through all available projects in a workspace
-func (w *Workspace) AllFavoriteProjects(client *Client, options ...*Options) ([]*Project, error) {
+func (w *Workspace) AllFavoriteProjects(ctx context.Context, client *Client, options ...*Options) ([]*Project, error) {
 	var allProjects []*Project
 	nextPage := &NextPage{}
 
@@ -260,7 +261,7 @@ func (w *Workspace) AllFavoriteProjects(client *Client, options ...*Options) ([]
 		}
 
 		allOptions := append([]*Options{page}, options...)
-		projects, nextPage, err = w.FavoriteProjects(client, allOptions...)
+		projects, nextPage, err = w.FavoriteProjects(ctx, client, allOptions...)
 		if err != nil {
 			return nil, err
 		}
@@ -271,18 +272,18 @@ func (w *Workspace) AllFavoriteProjects(client *Client, options ...*Options) ([]
 }
 
 // Projects returns a list of projects in this team
-func (t *Team) Projects(client *Client, options ...*Options) ([]*Project, *NextPage, error) {
+func (t *Team) Projects(ctx context.Context, client *Client, options ...*Options) ([]*Project, *NextPage, error) {
 	client.trace("Listing projects in %q", t.Name)
 
 	var result []*Project
 
 	// Make the request
-	nextPage, err := client.get(fmt.Sprintf("/teams/%s/projects", t.ID), nil, &result, options...)
+	nextPage, err := client.get(ctx, fmt.Sprintf("/teams/%s/projects", t.ID), nil, &result, options...)
 	return result, nextPage, err
 }
 
 // AllProjects repeatedly pages through all available projects in a team
-func (t *Team) AllProjects(client *Client, options ...*Options) ([]*Project, error) {
+func (t *Team) AllProjects(ctx context.Context, client *Client, options ...*Options) ([]*Project, error) {
 	var allProjects []*Project
 	nextPage := &NextPage{}
 
@@ -296,7 +297,7 @@ func (t *Team) AllProjects(client *Client, options ...*Options) ([]*Project, err
 		}
 
 		allOptions := append([]*Options{page}, options...)
-		projects, nextPage, err = t.Projects(client, allOptions...)
+		projects, nextPage, err = t.Projects(ctx, client, allOptions...)
 		if err != nil {
 			return nil, err
 		}
@@ -307,21 +308,21 @@ func (t *Team) AllProjects(client *Client, options ...*Options) ([]*Project, err
 }
 
 // CreateProject adds a new project to a workspace
-func (c *Client) CreateProject(project *CreateProjectRequest) (*Project, error) {
+func (c *Client) CreateProject(ctx context.Context, project *CreateProjectRequest) (*Project, error) {
 	c.info("Creating project %q\n", project.Name)
 
 	result := &Project{}
 
-	err := c.post("/projects", project, result)
+	err := c.post(ctx, "/projects", project, result)
 	return result, err
 }
 
 // CreateProject adds a new project to a team
-func (t *Team) CreateProject(c *Client, project *CreateProjectRequest) (*Project, error) {
+func (t *Team) CreateProject(ctx context.Context, c *Client, project *CreateProjectRequest) (*Project, error) {
 	c.info("Creating project %q\n", project.Name)
 
 	result := &Project{}
 
-	err := c.post(fmt.Sprintf("/teams/%s/projects", t.ID), project, result)
+	err := c.post(ctx, fmt.Sprintf("/teams/%s/projects", t.ID), project, result)
 	return result, err
 }

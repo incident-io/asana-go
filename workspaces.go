@@ -1,6 +1,7 @@
 package asana
 
 import (
+	"context"
 	"fmt"
 )
 
@@ -34,26 +35,26 @@ type Workspace struct {
 }
 
 // Fetch loads the full details for this Workspace
-func (w *Workspace) Fetch(client *Client) error {
+func (w *Workspace) Fetch(ctx context.Context, client *Client) error {
 	client.trace("Loading details for workspace %s\n", w.ID)
 
-	_, err := client.get(fmt.Sprintf("/workspaces/%s", w.ID), nil, w)
+	_, err := client.get(ctx, fmt.Sprintf("/workspaces/%s", w.ID), nil, w)
 	return err
 }
 
 // Workspaces returns workspaces and organizations accessible to the currently
 // authorized account
-func (c *Client) Workspaces(options ...*Options) ([]*Workspace, *NextPage, error) {
+func (c *Client) Workspaces(ctx context.Context, options ...*Options) ([]*Workspace, *NextPage, error) {
 	c.trace("Listing workspaces...\n")
 	var result []*Workspace
 
 	// Make the request
-	nextPage, err := c.get("/workspaces", nil, &result, options...)
+	nextPage, err := c.get(ctx, "/workspaces", nil, &result, options...)
 	return result, nextPage, err
 }
 
 // AllWorkspaces repeatedly pages through all available workspaces for a client
-func (c *Client) AllWorkspaces(options ...*Options) ([]*Workspace, error) {
+func (c *Client) AllWorkspaces(ctx context.Context, options ...*Options) ([]*Workspace, error) {
 	allWorkspaces := []*Workspace{}
 	nextPage := &NextPage{}
 
@@ -67,7 +68,7 @@ func (c *Client) AllWorkspaces(options ...*Options) ([]*Workspace, error) {
 		}
 
 		allOptions := append([]*Options{page}, options...)
-		workspaces, nextPage, err = c.Workspaces(allOptions...)
+		workspaces, nextPage, err = c.Workspaces(ctx, allOptions...)
 		if err != nil {
 			return nil, err
 		}

@@ -1,6 +1,7 @@
 package asana
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 )
@@ -128,7 +129,7 @@ type AddCustomFieldSettingRequest struct {
 	InsertAfter  string `json:"insert_after,omitempty"`
 }
 
-func (p *Project) AddCustomFieldSetting(client *Client, request *AddCustomFieldSettingRequest) (*CustomFieldSetting, error) {
+func (p *Project) AddCustomFieldSetting(ctx context.Context, client *Client, request *AddCustomFieldSettingRequest) (*CustomFieldSetting, error) {
 	client.trace("Attach custom field %q to project %q", request.CustomField, p.ID)
 
 	// Custom request encoding
@@ -149,11 +150,11 @@ func (p *Project) AddCustomFieldSetting(client *Client, request *AddCustomFieldS
 	}
 
 	result := &CustomFieldSetting{}
-	err := client.post(fmt.Sprintf("/projects/%s/addCustomFieldSetting", p.ID), m, result)
+	err := client.post(ctx, fmt.Sprintf("/projects/%s/addCustomFieldSetting", p.ID), m, result)
 	return result, err
 }
 
-func (p *Project) RemoveCustomFieldSetting(client *Client, customFieldID string) error {
+func (p *Project) RemoveCustomFieldSetting(ctx context.Context, client *Client, customFieldID string) error {
 	client.trace("Remove custom field %q from project %q", customFieldID, p.ID)
 
 	// Custom request encoding
@@ -161,7 +162,7 @@ func (p *Project) RemoveCustomFieldSetting(client *Client, customFieldID string)
 		"custom_field": customFieldID,
 	}
 
-	err := client.post(fmt.Sprintf("/projects/%s/removeCustomFieldSetting", p.ID), m, &json.RawMessage{})
+	err := client.post(ctx, fmt.Sprintf("/projects/%s/removeCustomFieldSetting", p.ID), m, &json.RawMessage{})
 	return err
 }
 
@@ -176,11 +177,11 @@ type CreateCustomFieldRequest struct {
 	EnumOptions []*EnumValueBase `json:"enum_options,omitempty"`
 }
 
-func (c *Client) CreateCustomField(request *CreateCustomFieldRequest) (*CustomField, error) {
+func (c *Client) CreateCustomField(ctx context.Context, request *CreateCustomFieldRequest) (*CustomField, error) {
 	c.trace("Create custom field %q in workspace %s", request.Name, request.Workspace)
 
 	result := &CustomField{}
-	err := c.post("/custom_fields", request, result)
+	err := c.post(ctx, "/custom_fields", request, result)
 	return result, err
 }
 
@@ -208,25 +209,25 @@ type CustomFieldValue struct {
 }
 
 // Fetch loads the full details for this CustomField
-func (f *CustomField) Fetch(client *Client, options ...*Options) error {
+func (f *CustomField) Fetch(ctx context.Context, client *Client, options ...*Options) error {
 	client.trace("Loading details for custom field %q", f.ID)
 
-	_, err := client.get(fmt.Sprintf("/custom_fields/%s", f.ID), nil, f, options...)
+	_, err := client.get(ctx, fmt.Sprintf("/custom_fields/%s", f.ID), nil, f, options...)
 	return err
 }
 
 // CustomFields returns the compact records for all custom fields in the workspace
-func (w *Workspace) CustomFields(client *Client, options ...*Options) ([]*CustomField, *NextPage, error) {
+func (w *Workspace) CustomFields(ctx context.Context, client *Client, options ...*Options) ([]*CustomField, *NextPage, error) {
 	client.trace("Listing custom fields in workspace %s...\n", w.ID)
 	var result []*CustomField
 
 	// Make the request
-	nextPage, err := client.get(fmt.Sprintf("/workspaces/%s/custom_fields", w.ID), nil, &result, options...)
+	nextPage, err := client.get(ctx, fmt.Sprintf("/workspaces/%s/custom_fields", w.ID), nil, &result, options...)
 	return result, nextPage, err
 }
 
 // AllCustomFields repeatedly pages through all available custom fields in a workspace
-func (w *Workspace) AllCustomFields(client *Client, options ...*Options) ([]*CustomField, error) {
+func (w *Workspace) AllCustomFields(ctx context.Context, client *Client, options ...*Options) ([]*CustomField, error) {
 	var allCustomFields []*CustomField
 	nextPage := &NextPage{}
 
@@ -240,7 +241,7 @@ func (w *Workspace) AllCustomFields(client *Client, options ...*Options) ([]*Cus
 		}
 
 		allOptions := append([]*Options{page}, options...)
-		customFields, nextPage, err = w.CustomFields(client, allOptions...)
+		customFields, nextPage, err = w.CustomFields(ctx, client, allOptions...)
 		if err != nil {
 			return nil, err
 		}

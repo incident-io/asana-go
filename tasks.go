@@ -1,6 +1,7 @@
 package asana
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -286,35 +287,35 @@ type Task struct {
 }
 
 // Fetch loads the full details for this Task
-func (t *Task) Fetch(client *Client) error {
+func (t *Task) Fetch(ctx context.Context, client *Client) error {
 	client.trace("Loading task details for %q", t.Name)
 
-	_, err := client.get(fmt.Sprintf("/tasks/%s", t.ID), nil, t)
+	_, err := client.get(ctx, fmt.Sprintf("/tasks/%s", t.ID), nil, t)
 	return err
 }
 
 // Update applies new values to a Task record
-func (t *Task) Update(client *Client, update *UpdateTaskRequest) error {
+func (t *Task) Update(ctx context.Context, client *Client, update *UpdateTaskRequest) error {
 	client.trace("Updating task %q", t.Name)
 
-	err := client.put(fmt.Sprintf("/tasks/%s", t.ID), update, t)
+	err := client.put(ctx, fmt.Sprintf("/tasks/%s", t.ID), update, t)
 	return err
 }
 
 // Unassign removes the current assignee
-func (t *Task) Unassign(client *Client) error {
+func (t *Task) Unassign(ctx context.Context, client *Client) error {
 	client.trace("Removing assignee from %q", t.Name)
 
-	err := client.put(fmt.Sprintf("/tasks/%s", t.ID), &struct {
+	err := client.put(ctx, fmt.Sprintf("/tasks/%s", t.ID), &struct {
 		Assignee *string `json:"assignee"`
 	}{}, t)
 	return err
 }
 
-func (t *Task) Delete(client *Client) error {
+func (t *Task) Delete(ctx context.Context, client *Client) error {
 	client.info("Deleting task %q", t.Name)
 
-	return client.delete(fmt.Sprintf("/tasks/%s", t.ID))
+	return client.delete(ctx, fmt.Sprintf("/tasks/%s", t.ID))
 }
 
 // AddProjectRequest defines the location a task should be added to a project
@@ -326,7 +327,7 @@ type AddProjectRequest struct {
 }
 
 // AddProject adds this task to an existing project at the provided location
-func (t *Task) AddProject(client *Client, request *AddProjectRequest) error {
+func (t *Task) AddProject(ctx context.Context, client *Client, request *AddProjectRequest) error {
 	client.trace("Adding task %q to project %q", t.ID, request.Project)
 
 	// Custom encoding of Insert fields needed
@@ -350,11 +351,11 @@ func (t *Task) AddProject(client *Client, request *AddProjectRequest) error {
 		m["section"] = request.Section
 	}
 
-	err := client.post(fmt.Sprintf("/tasks/%s/addProject", t.ID), m, &json.RawMessage{})
+	err := client.post(ctx, fmt.Sprintf("/tasks/%s/addProject", t.ID), m, &json.RawMessage{})
 	return err
 }
 
-func (t *Task) RemoveProject(client *Client, projectID string) error {
+func (t *Task) RemoveProject(ctx context.Context, client *Client, projectID string) error {
 	client.trace("Removing task %q from project %q", t.ID, projectID)
 
 	// Custom encoding of Insert fields needed
@@ -362,7 +363,7 @@ func (t *Task) RemoveProject(client *Client, projectID string) error {
 		"project": projectID,
 	}
 
-	err := client.post(fmt.Sprintf("/tasks/%s/removeProject", t.ID), m, &json.RawMessage{})
+	err := client.post(ctx, fmt.Sprintf("/tasks/%s/removeProject", t.ID), m, &json.RawMessage{})
 	return err
 }
 
@@ -375,7 +376,7 @@ type SetParentRequest struct {
 }
 
 // SetParent changes the parent of a task
-func (t *Task) SetParent(client *Client, request *SetParentRequest) error {
+func (t *Task) SetParent(ctx context.Context, client *Client, request *SetParentRequest) error {
 	client.trace("Setting the parent of task %q to %q", t.ID, request.Parent)
 
 	// Custom encoding of Insert fields needed
@@ -393,7 +394,7 @@ func (t *Task) SetParent(client *Client, request *SetParentRequest) error {
 		m["insert_before"] = request.InsertBefore
 	}
 
-	err := client.post(fmt.Sprintf("/tasks/%s/setParent", t.ID), m, &json.RawMessage{})
+	err := client.post(ctx, fmt.Sprintf("/tasks/%s/setParent", t.ID), m, &json.RawMessage{})
 	return err
 }
 
@@ -405,10 +406,10 @@ type AddDependenciesRequest struct {
 
 // AddDependencies marks a set of tasks as dependencies of this task, if they
 // are not already dependencies. A task can have at most 15 dependencies.
-func (t *Task) AddDependencies(client *Client, request *AddDependenciesRequest) error {
+func (t *Task) AddDependencies(ctx context.Context, client *Client, request *AddDependenciesRequest) error {
 	client.trace("Adding dependencies to task %q", t.ID)
 
-	err := client.post(fmt.Sprintf("/tasks/%s/addDependencies", t.ID), request, &json.RawMessage{})
+	err := client.post(ctx, fmt.Sprintf("/tasks/%s/addDependencies", t.ID), request, &json.RawMessage{})
 	return err
 }
 
@@ -420,70 +421,70 @@ type AddDependentsRequest struct {
 
 // AddDependents marks a set of tasks as dependents of this task, if they
 // are not already dependents. A task can have at most 30 dependents.
-func (t *Task) AddDependents(client *Client, request *AddDependentsRequest) error {
+func (t *Task) AddDependents(ctx context.Context, client *Client, request *AddDependentsRequest) error {
 	client.trace("Adding dependents to task %q", t.ID)
 
-	err := client.post(fmt.Sprintf("/tasks/%s/addDependents", t.ID), request, &json.RawMessage{})
+	err := client.post(ctx, fmt.Sprintf("/tasks/%s/addDependents", t.ID), request, &json.RawMessage{})
 	return err
 }
 
 // Tasks returns a list of tasks in this project
-func (p *Project) Tasks(client *Client, opts ...*Options) ([]*Task, *NextPage, error) {
+func (p *Project) Tasks(ctx context.Context, client *Client, opts ...*Options) ([]*Task, *NextPage, error) {
 	client.trace("Listing tasks in %q", p.Name)
 	var result []*Task
 
 	// Make the request
-	nextPage, err := client.get(fmt.Sprintf("/projects/%s/tasks", p.ID), nil, &result, opts...)
+	nextPage, err := client.get(ctx, fmt.Sprintf("/projects/%s/tasks", p.ID), nil, &result, opts...)
 	return result, nextPage, err
 }
 
 // Tasks returns a list of tasks in this section. Board view only.
-func (s *Section) Tasks(client *Client, opts ...*Options) ([]*Task, *NextPage, error) {
+func (s *Section) Tasks(ctx context.Context, client *Client, opts ...*Options) ([]*Task, *NextPage, error) {
 	client.trace("Listing tasks in %q", s.Name)
 	var result []*Task
 
 	// Make the request
-	nextPage, err := client.get(fmt.Sprintf("/sections/%s/tasks", s.ID), nil, &result, opts...)
+	nextPage, err := client.get(ctx, fmt.Sprintf("/sections/%s/tasks", s.ID), nil, &result, opts...)
 	return result, nextPage, err
 }
 
 // Subtasks returns a list of tasks in this project
-func (t *Task) Subtasks(client *Client, opts ...*Options) ([]*Task, *NextPage, error) {
+func (t *Task) Subtasks(ctx context.Context, client *Client, opts ...*Options) ([]*Task, *NextPage, error) {
 	client.trace("Listing subtasks for %q", t.Name)
 
 	var result []*Task
 
 	// Make the request
-	nextPage, err := client.get(fmt.Sprintf("/tasks/%s/subtasks", t.ID), nil, &result, opts...)
+	nextPage, err := client.get(ctx, fmt.Sprintf("/tasks/%s/subtasks", t.ID), nil, &result, opts...)
 	return result, nextPage, err
 }
 
 // CreateTask creates a new task in the given project
-func (c *Client) CreateTask(task *CreateTaskRequest) (*Task, error) {
+func (c *Client) CreateTask(ctx context.Context, task *CreateTaskRequest) (*Task, error) {
 	c.info("Creating task %q", task.Name)
 
 	result := &Task{}
 
-	err := c.post("/tasks", task, result)
+	err := c.post(ctx, "/tasks", task, result)
 	return result, err
 }
 
 // CreateSubtask creates a new task as a subtask of this task
-func (t *Task) CreateSubtask(client *Client, task *Task) (*Task, error) {
+func (t *Task) CreateSubtask(ctx context.Context, client *Client, task *Task) (*Task, error) {
 	client.info("Creating subtask %q", task.Name)
 
 	result := &Task{}
 
-	err := client.post(fmt.Sprintf("/tasks/%s/subtasks", t.ID), task, result)
+	err := client.post(ctx, fmt.Sprintf("/tasks/%s/subtasks", t.ID), task, result)
 	return result, err
 }
 
 // QueryTasks returns the compact task records for some filtered set of tasks.
 // Use one or more of the parameters provided to filter the tasks returned.
 // You must specify a project or tag if you do not specify assignee and workspace.
-func (c *Client) QueryTasks(query *TaskQuery, opts ...*Options) ([]*Task, *NextPage, error) {
+func (c *Client) QueryTasks(ctx context.Context, query *TaskQuery, opts ...*Options) ([]*Task, *NextPage, error) {
 	var result []*Task
 
-	nextPage, err := c.get("/tasks", query, &result, opts...)
+	nextPage, err := c.get(ctx, "/tasks", query, &result, opts...)
 	return result, nextPage, err
 }

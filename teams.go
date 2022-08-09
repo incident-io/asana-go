@@ -1,6 +1,7 @@
 package asana
 
 import (
+	"context"
 	"fmt"
 )
 
@@ -24,26 +25,26 @@ type Team struct {
 }
 
 // Fetch loads the full details for this Team
-func (t *Team) Fetch(client *Client) error {
+func (t *Team) Fetch(ctx context.Context, client *Client) error {
 	client.trace("Loading team details for %q\n", t.Name)
 
 	// Use fields options to request Organization field which is not returned by default
-	_, err := client.get(fmt.Sprintf("/teams/%s", t.ID), nil, t, Fields(*t))
+	_, err := client.get(ctx, fmt.Sprintf("/teams/%s", t.ID), nil, t, Fields(*t))
 	return err
 }
 
 // Teams returns the compact records for all teams in the organization visible to the authorized user
-func (w *Workspace) Teams(client *Client, options ...*Options) ([]*Team, *NextPage, error) {
+func (w *Workspace) Teams(ctx context.Context, client *Client, options ...*Options) ([]*Team, *NextPage, error) {
 	client.trace("Listing teams in workspace %s...\n", w.ID)
 	var result []*Team
 
 	// Make the request
-	nextPage, err := client.get(fmt.Sprintf("/organizations/%s/teams", w.ID), nil, &result, options...)
+	nextPage, err := client.get(ctx, fmt.Sprintf("/organizations/%s/teams", w.ID), nil, &result, options...)
 	return result, nextPage, err
 }
 
 // AllTeams repeatedly pages through all available teams in a workspace
-func (w *Workspace) AllTeams(client *Client, options ...*Options) ([]*Team, error) {
+func (w *Workspace) AllTeams(ctx context.Context, client *Client, options ...*Options) ([]*Team, error) {
 	var allTeams []*Team
 	nextPage := &NextPage{}
 
@@ -57,7 +58,7 @@ func (w *Workspace) AllTeams(client *Client, options ...*Options) ([]*Team, erro
 		}
 
 		allOptions := append([]*Options{page}, options...)
-		teams, nextPage, err = w.Teams(client, allOptions...)
+		teams, nextPage, err = w.Teams(ctx, client, allOptions...)
 		if err != nil {
 			return nil, err
 		}

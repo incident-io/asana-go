@@ -1,6 +1,7 @@
 package asana
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -20,17 +21,17 @@ type TaskStory struct {
 }
 
 // TaskStories returns the compact records for all stories on a task
-func (t *Task) TaskStories(client *Client, options ...*Options) ([]*TaskStory, *NextPage, error) {
+func (t *Task) TaskStories(ctx context.Context, client *Client, options ...*Options) ([]*TaskStory, *NextPage, error) {
 	client.trace("Listing stories for task %s...\n", t.ID)
 	var result []*TaskStory
 
 	// Make the request
-	nextPage, err := client.get(fmt.Sprintf("/tasks/%s/stories", t.ID), nil, &result, options...)
+	nextPage, err := client.get(ctx, fmt.Sprintf("/tasks/%s/stories", t.ID), nil, &result, options...)
 	return result, nextPage, err
 }
 
 // AllTaskStories repeatedly pages through all available stories for a task
-func (t *Task) AllTaskStories(client *Client, options ...*Options) ([]*TaskStory, error) {
+func (t *Task) AllTaskStories(ctx context.Context, client *Client, options ...*Options) ([]*TaskStory, error) {
 	var allTaskStories []*TaskStory
 	nextPage := &NextPage{}
 
@@ -44,7 +45,7 @@ func (t *Task) AllTaskStories(client *Client, options ...*Options) ([]*TaskStory
 		}
 
 		allOptions := append([]*Options{page}, options...)
-		taskStories, nextPage, err = t.TaskStories(client, allOptions...)
+		taskStories, nextPage, err = t.TaskStories(ctx, client, allOptions...)
 		if err != nil {
 			return nil, err
 		}

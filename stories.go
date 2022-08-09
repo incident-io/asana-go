@@ -1,6 +1,7 @@
 package asana
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -150,49 +151,49 @@ type Story struct {
 }
 
 // Stories lists all stories attached to a task
-func (t *Task) Stories(client *Client, opts ...*Options) ([]*Story, *NextPage, error) {
+func (t *Task) Stories(ctx context.Context, client *Client, opts ...*Options) ([]*Story, *NextPage, error) {
 	client.trace("Listing stories for %q", t.Name)
 
 	var result []*Story
 
 	// Make the request
-	nextPage, err := client.get(fmt.Sprintf("/tasks/%s/stories", t.ID), nil, &result, opts...)
+	nextPage, err := client.get(ctx, fmt.Sprintf("/tasks/%s/stories", t.ID), nil, &result, opts...)
 	return result, nextPage, err
 }
 
 // CreateComment adds a comment story to a task
-func (t *Task) CreateComment(client *Client, story *StoryBase) (*Story, error) {
+func (t *Task) CreateComment(ctx context.Context, client *Client, story *StoryBase) (*Story, error) {
 	client.info("Creating comment for task %q", t.Name)
 
 	result := &Story{}
 
-	err := client.post(fmt.Sprintf("/tasks/%s/stories", t.ID), story, result)
+	err := client.post(ctx, fmt.Sprintf("/tasks/%s/stories", t.ID), story, result)
 	return result, err
 }
 
 // Fetch loads the full details for this Story
-func (s *Story) Fetch(client *Client) error {
+func (s *Story) Fetch(ctx context.Context, client *Client) error {
 	client.trace("Loading story details for %q", s.ID)
 
-	_, err := client.get(fmt.Sprintf("/stories/%s", s.ID), nil, s)
+	_, err := client.get(ctx, fmt.Sprintf("/stories/%s", s.ID), nil, s)
 	return err
 }
 
 // UpdateStory updates the story and returns the full record for the updated story.
 // Only comment stories can have their text updated, and only comment stories and attachment stories can be pinned.
 // Only one of text and html_text can be specified.
-func (s *Story) UpdateStory(client *Client, story *StoryBase) (*Story, error) {
+func (s *Story) UpdateStory(ctx context.Context, client *Client, story *StoryBase) (*Story, error) {
 	client.info("Updating story %s", s.ID)
 
 	result := &Story{}
 
-	err := client.put(fmt.Sprintf("/stories/%s", s.ID), story, result)
+	err := client.put(ctx, fmt.Sprintf("/stories/%s", s.ID), story, result)
 	return result, err
 }
 
-func (s *Story) Delete(client *Client) error {
+func (s *Story) Delete(ctx context.Context, client *Client) error {
 	client.trace("Delete story %s %s", s.ID, s.ResourceSubtype)
 
-	err := client.delete(fmt.Sprintf("/stories/%s", s.ID))
+	err := client.delete(ctx, fmt.Sprintf("/stories/%s", s.ID))
 	return err
 }

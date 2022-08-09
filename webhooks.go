@@ -1,6 +1,7 @@
 package asana
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -44,7 +45,7 @@ type Webhook struct {
 }
 
 // Webhooks returns the compact records for all webhooks your app has registered for the authenticated user in the given workspace.
-func (w *Workspace) Webhooks(client *Client, options ...*Options) ([]*Webhook, *NextPage, error) {
+func (w *Workspace) Webhooks(ctx context.Context, client *Client, options ...*Options) ([]*Webhook, *NextPage, error) {
 	client.trace("Listing webhooks for workspace %s...\n", w.ID)
 	var result []*Webhook
 
@@ -55,12 +56,12 @@ func (w *Workspace) Webhooks(client *Client, options ...*Options) ([]*Webhook, *
 	allOptions := append([]*Options{workspace}, options...)
 
 	// Make the request
-	nextPage, err := client.get("/webhooks", nil, &result, allOptions...)
+	nextPage, err := client.get(ctx, "/webhooks", nil, &result, allOptions...)
 	return result, nextPage, err
 }
 
 // AllWebhooks repeatedly pages through all available webhooks for a user
-func (w *Workspace) AllWebhooks(client *Client, options ...*Options) ([]*Webhook, error) {
+func (w *Workspace) AllWebhooks(ctx context.Context, client *Client, options ...*Options) ([]*Webhook, error) {
 	var allWebhooks []*Webhook
 	nextPage := &NextPage{}
 
@@ -74,7 +75,7 @@ func (w *Workspace) AllWebhooks(client *Client, options ...*Options) ([]*Webhook
 		}
 
 		allOptions := append([]*Options{page}, options...)
-		webhooks, nextPage, err = w.Webhooks(client, allOptions...)
+		webhooks, nextPage, err = w.Webhooks(ctx, client, allOptions...)
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +86,7 @@ func (w *Workspace) AllWebhooks(client *Client, options ...*Options) ([]*Webhook
 }
 
 // CreateWebhook registers a new webhook
-func (c *Client) CreateWebhook(resource, target string, filters []Filter) (*Webhook, error) {
+func (c *Client) CreateWebhook(ctx context.Context, resource, target string, filters []Filter) (*Webhook, error) {
 	m := map[string]interface{}{}
 	m["resource"] = resource
 	m["target"] = target
@@ -93,14 +94,14 @@ func (c *Client) CreateWebhook(resource, target string, filters []Filter) (*Webh
 
 	result := &Webhook{}
 
-	err := c.post("/webhooks", m, result)
+	err := c.post(ctx, "/webhooks", m, result)
 
 	return result, err
 }
 
 // DeleteWebhook deletes an existing webhook
-func (c *Client) DeleteWebhook(ID string) error {
-	err := c.delete(fmt.Sprintf("/webhooks/%s", ID))
+func (c *Client) DeleteWebhook(ctx context.Context, ID string) error {
+	err := c.delete(ctx, fmt.Sprintf("/webhooks/%s", ID))
 	return err
 }
 

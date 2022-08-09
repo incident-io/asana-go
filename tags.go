@@ -1,6 +1,7 @@
 package asana
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -50,26 +51,26 @@ type Tag struct {
 }
 
 // Fetch loads the full details for this Tag
-func (t *Tag) Fetch(client *Client, options ...*Options) error {
+func (t *Tag) Fetch(ctx context.Context, client *Client, options ...*Options) error {
 	client.trace("Loading details for tag %q", t.Name)
 
-	_, err := client.get(fmt.Sprintf("/tags/%s", t.ID), nil, t, options...)
+	_, err := client.get(ctx, fmt.Sprintf("/tags/%s", t.ID), nil, t, options...)
 	return err
 }
 
 // Tags returns a list of tags in this workspace
-func (w *Workspace) Tags(client *Client, options ...*Options) ([]*Tag, *NextPage, error) {
+func (w *Workspace) Tags(ctx context.Context, client *Client, options ...*Options) ([]*Tag, *NextPage, error) {
 	client.trace("Listing tags in %q", w.Name)
 
 	var result []*Tag
 
 	// Make the request
-	nextPage, err := client.get(fmt.Sprintf("/workspaces/%s/tags", w.ID), nil, &result, options...)
+	nextPage, err := client.get(ctx, fmt.Sprintf("/workspaces/%s/tags", w.ID), nil, &result, options...)
 	return result, nextPage, err
 }
 
 // AllTags repeatedly pages through all available tags in a workspace
-func (w *Workspace) AllTags(client *Client, options ...*Options) ([]*Tag, error) {
+func (w *Workspace) AllTags(ctx context.Context, client *Client, options ...*Options) ([]*Tag, error) {
 	allTags := []*Tag{}
 	nextPage := &NextPage{}
 
@@ -83,7 +84,7 @@ func (w *Workspace) AllTags(client *Client, options ...*Options) ([]*Tag, error)
 		}
 
 		allOptions := append([]*Options{page}, options...)
-		tags, nextPage, err = w.Tags(client, allOptions...)
+		tags, nextPage, err = w.Tags(ctx, client, allOptions...)
 		if err != nil {
 			return nil, err
 		}
@@ -94,12 +95,12 @@ func (w *Workspace) AllTags(client *Client, options ...*Options) ([]*Tag, error)
 }
 
 // CreateTag adds a new tag to a workspace
-func (w *Workspace) CreateTag(client *Client, tag *TagBase) (*Tag, error) {
+func (w *Workspace) CreateTag(ctx context.Context, client *Client, tag *TagBase) (*Tag, error) {
 	client.info("Creating tag %q in %q\n", tag.Name, w.Name)
 
 	result := &Tag{}
 
-	err := client.post(fmt.Sprintf("/workspaces/%s/tags", w.ID), tag, result)
+	err := client.post(ctx, fmt.Sprintf("/workspaces/%s/tags", w.ID), tag, result)
 	if err != nil {
 		return nil, err
 	}

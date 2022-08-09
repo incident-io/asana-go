@@ -3,6 +3,7 @@ package asana // import "github.com/SnoozeThis/asana-go"
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -103,7 +104,7 @@ func mergeQuery(q url.Values, request interface{}) error {
 	return nil
 }
 
-func (c *Client) get(path string, data, result interface{}, opts ...*Options) (*NextPage, error) {
+func (c *Client) get(ctx context.Context, path string, data, result interface{}, opts ...*Options) (*NextPage, error) {
 	requestID := xid.New()
 
 	// Prepare options
@@ -156,7 +157,7 @@ func (c *Client) get(path string, data, result interface{}, opts ...*Options) (*
 	if c.Debug {
 		log.Printf("%s GET %s", requestID, path)
 	}
-	request, err := http.NewRequest(http.MethodGet, c.getURL(path), nil)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, c.getURL(path), nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "%s Request error", requestID)
 	}
@@ -203,19 +204,19 @@ func joinFeatures(features []Feature) string {
 	return b.String()
 }
 
-func (c *Client) post(path string, data, result interface{}, opts ...*Options) error {
-	return c.do(http.MethodPost, path, data, result, opts...)
+func (c *Client) post(ctx context.Context, path string, data, result interface{}, opts ...*Options) error {
+	return c.do(ctx, http.MethodPost, path, data, result, opts...)
 }
 
-func (c *Client) put(path string, data, result interface{}, opts ...*Options) error {
-	return c.do(http.MethodPut, path, data, result, opts...)
+func (c *Client) put(ctx context.Context, path string, data, result interface{}, opts ...*Options) error {
+	return c.do(ctx, http.MethodPut, path, data, result, opts...)
 }
 
-func (c *Client) delete(path string, opts ...*Options) error {
-	return c.do(http.MethodDelete, path, nil, nil, opts...)
+func (c *Client) delete(ctx context.Context, path string, opts ...*Options) error {
+	return c.do(ctx, http.MethodDelete, path, nil, nil, opts...)
 }
 
-func (c *Client) do(method, path string, data, result interface{}, opts ...*Options) error {
+func (c *Client) do(ctx context.Context, method, path string, data, result interface{}, opts ...*Options) error {
 
 	requestID := xid.New()
 
@@ -249,7 +250,7 @@ func (c *Client) do(method, path string, data, result interface{}, opts ...*Opti
 		body, _ := json.MarshalIndent(req, "", "  ")
 		log.Printf("%s %s %s\n%s", requestID, method, path, body)
 	}
-	request, err := http.NewRequest(method, c.getURL(path), bytes.NewReader(body))
+	request, err := http.NewRequestWithContext(ctx, method, c.getURL(path), bytes.NewReader(body))
 	if err != nil {
 		return errors.Wrap(err, "Request error")
 	}
@@ -286,7 +287,7 @@ func escapeQuotes(s string) string {
 
 // --------
 
-func (c *Client) postMultipart(path string, result interface{}, field string, r io.ReadCloser, filename string, contentType string, opts ...*Options) error {
+func (c *Client) postMultipart(ctx context.Context, path string, result interface{}, field string, r io.ReadCloser, filename string, contentType string, opts ...*Options) error {
 	// Make request
 	requestID := xid.New()
 	options, err := c.mergeOptions(opts...)
@@ -320,7 +321,7 @@ func (c *Client) postMultipart(path string, result interface{}, field string, r 
 	}
 
 	// Create request
-	request, err := http.NewRequest(http.MethodPost, c.getURL(path), io.MultiReader(
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, c.getURL(path), io.MultiReader(
 		bytes.NewReader(buffer.Bytes()[:headerSize]),
 		r,
 		bytes.NewReader(buffer.Bytes()[headerSize:])))
