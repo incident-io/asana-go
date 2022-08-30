@@ -1,6 +1,7 @@
 package asana
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -33,4 +34,12 @@ type Event struct {
 		ResourceType    string `json:"resource_type"`
 		ResourceSubtype string `json:"resource_subtype"`
 	} `json:"resource"`
+}
+
+func (e Event) String() string {
+	data, err := json.MarshalIndent(e, "", "  ")
+	if err != nil {
+		return ""
+	}
+	return string(data)
 }
