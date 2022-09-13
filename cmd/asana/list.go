@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/SnoozeThis/asana-go"
+	"github.com/SnoozeThis-org/asana-go"
 )
 
 func ListWorkspaces(c *asana.Client) error {

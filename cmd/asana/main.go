@@ -11,7 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/SnoozeThis/asana-go"
+	"github.com/SnoozeThis-org/asana-go"
 )
 
 var options struct {
