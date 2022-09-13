@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/jessevdk/go-flags"
@@ -11,7 +12,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/SnoozeThis-org/asana-go"
+	asana "github.com/SnoozeThis-org/asana-go"
 )
 
 var options struct {
@@ -60,6 +61,8 @@ func main() {
 	client.Verbose = options.Verbose
 	client.DefaultOptions.Enable = []asana.Feature{asana.StringIDs, asana.NewSections, asana.NewTaskSubtypes}
 
+	ctx := context.TODO()
+
 	// Load a task object
 	if options.Task == nil {
 
@@ -68,13 +71,13 @@ func main() {
 
 			// Load a workspace object
 			if options.Workspace == nil {
-				check(ListWorkspaces(client))
+				check(ListWorkspaces(ctx, client))
 				return
 			}
 
 			for _, w := range options.Workspace {
 				workspace := &asana.Workspace{ID: w}
-				check(ListProjects(client, workspace))
+				check(ListProjects(ctx, client, workspace))
 			}
 			return
 		}
@@ -87,38 +90,38 @@ func main() {
 					Name: options.AddSection,
 				}
 
-				_, err := project.CreateSection(client, request)
+				_, err := project.CreateSection(ctx, client, request)
 				check(err)
 				return
 			}
 
-			fmtProject(client, project)
+			fmtProject(ctx, client, project)
 		}
 		return
 	}
 
 	for _, t := range options.Task {
 		task := &asana.Task{ID: t}
-		check(task.Fetch(client))
+		check(task.Fetch(ctx, client))
 
 		fmt.Printf("Task %s: %q\n", task.ID, task.Name)
 		if options.Attach != "" {
-			addAttachment(task, client)
+			addAttachment(ctx, task, client)
 			return
 		}
 		if options.Stories {
-			listStories(task, client)
+			listStories(ctx, task, client)
 		}
 		if options.Clean {
-			cleanStories(task, client)
+			cleanStories(ctx, task, client)
 		}
 
-		fmtTask(task, client)
+		fmtTask(ctx, task, client)
 	}
 }
 
-func listStories(task *asana.Task, client *asana.Client) {
-	stories, _, _ := task.Stories(client)
+func listStories(ctx context.Context, task *asana.Task, client *asana.Client) {
+	stories, _, _ := task.Stories(ctx, client)
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
 
@@ -128,24 +131,24 @@ func listStories(task *asana.Task, client *asana.Client) {
 	}
 }
 
-func cleanStories(task *asana.Task, client *asana.Client) {
-	stories, _, _ := task.Stories(client)
+func cleanStories(ctx context.Context, task *asana.Task, client *asana.Client) {
+	stories, _, _ := task.Stories(ctx, client)
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
 
 	for _, s := range stories {
-		check(s.Delete(client))
+		check(s.Delete(ctx, client))
 	}
 }
 
-func fmtProject(client *asana.Client, project *asana.Project) {
+func fmtProject(ctx context.Context, client *asana.Client, project *asana.Project) {
 	fmt.Println("\nSections:")
-	check(ListSections(client, project))
+	check(ListSections(ctx, client, project))
 	fmt.Println("\nTasks:")
-	check(ListTasks(client, project))
+	check(ListTasks(ctx, client, project))
 }
 
-func fmtTask(task *asana.Task, client *asana.Client) {
+func fmtTask(ctx context.Context, task *asana.Task, client *asana.Client) {
 	fmt.Printf("  Completed: %v\n", task.Completed)
 	if task.Completed != nil && !*task.Completed {
 		fmt.Printf("  Due: %s\n", task.DueAt)
@@ -154,7 +157,7 @@ func fmtTask(task *asana.Task, client *asana.Client) {
 		fmt.Printf("  Notes: %q\n", task.Notes)
 	}
 	// Get subtasks
-	subtasks, nextPage, err := task.Subtasks(client)
+	subtasks, nextPage, err := task.Subtasks(ctx, client)
 	check(err)
 	_ = nextPage
 	for _, subtask := range subtasks {
@@ -162,11 +165,11 @@ func fmtTask(task *asana.Task, client *asana.Client) {
 	}
 }
 
-func addAttachment(task *asana.Task, client *asana.Client) {
+func addAttachment(ctx context.Context, task *asana.Task, client *asana.Client) {
 	f, err := os.Open(options.Attach)
 	check(err)
 	defer f.Close()
-	a, err := task.CreateAttachment(client, &asana.NewAttachment{
+	a, err := task.CreateAttachment(ctx, client, &asana.NewAttachment{
 		Reader:      f,
 		FileName:    f.Name(),
 		ContentType: mime.TypeByExtension(filepath.Ext(f.Name())),

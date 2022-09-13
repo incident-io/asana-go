@@ -1,14 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/SnoozeThis-org/asana-go"
+	asana "github.com/SnoozeThis-org/asana-go"
 )
 
-func ListWorkspaces(c *asana.Client) error {
+func ListWorkspaces(ctx context.Context, c *asana.Client) error {
 	// List workspaces
-	workspaces, nextPage, err := c.Workspaces()
+	workspaces, nextPage, err := c.Workspaces(ctx)
 	if err != nil {
 		return err
 	}
@@ -24,9 +25,9 @@ func ListWorkspaces(c *asana.Client) error {
 	return nil
 }
 
-func ListProjects(client *asana.Client, w *asana.Workspace) error {
+func ListProjects(ctx context.Context, client *asana.Client, w *asana.Workspace) error {
 	// List projects
-	projects, err := w.AllProjects(client, &asana.Options{
+	projects, err := w.AllProjects(ctx, client, &asana.Options{
 		Fields: []string{"name", "section_migration_status", "layout"},
 	})
 	if err != nil {
@@ -39,9 +40,9 @@ func ListProjects(client *asana.Client, w *asana.Workspace) error {
 	return nil
 }
 
-func ListTasks(client *asana.Client, p *asana.Project) error {
+func ListTasks(ctx context.Context, client *asana.Client, p *asana.Project) error {
 	// List projects
-	tasks, nextPage, err := p.Tasks(client, asana.Fields(asana.Task{}))
+	tasks, nextPage, err := p.Tasks(ctx, client, asana.Fields(asana.Task{}))
 	if err != nil {
 		return err
 	}
@@ -53,9 +54,9 @@ func ListTasks(client *asana.Client, p *asana.Project) error {
 	return nil
 }
 
-func ListSections(client *asana.Client, p *asana.Project) error {
+func ListSections(ctx context.Context, client *asana.Client, p *asana.Project) error {
 	// List sections
-	sections, nextPage, err := p.Sections(client)
+	sections, nextPage, err := p.Sections(ctx, client)
 	if err != nil {
 		return err
 	}
