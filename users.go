@@ -38,7 +38,7 @@ func (c *Client) CurrentUser(ctx context.Context) (*User, error) {
 
 	result := &User{}
 
-	_, err := c.get(ctx, "/users/me", nil, result)
+	_, err := c.Get(ctx, "/users/me", nil, result)
 
 	return result, err
 }
@@ -47,7 +47,7 @@ func (c *Client) CurrentUser(ctx context.Context) (*User, error) {
 func (u *User) Fetch(ctx context.Context, client *Client, options ...*Options) error {
 	client.trace("Loading details for user %q", u.ID)
 
-	_, err := client.get(ctx, fmt.Sprintf("/users/%s", u.ID), nil, u, options...)
+	_, err := client.Get(ctx, fmt.Sprintf("/users/%s", u.ID), nil, u, options...)
 	return err
 }
 
@@ -68,7 +68,7 @@ func (u *User) GetTaskList(ctx context.Context, client *Client, workspaceID stri
 
 	allOptions := append([]*Options{workspace}, options...)
 
-	_, err := client.get(ctx, fmt.Sprintf("/users/%s/user_task_list", u.ID), nil, &result, allOptions...)
+	_, err := client.Get(ctx, fmt.Sprintf("/users/%s/user_task_list", u.ID), nil, &result, allOptions...)
 	return result, err
 }
 
@@ -79,7 +79,7 @@ func (w *Workspace) Users(ctx context.Context, client *Client, options ...*Optio
 
 	// Make the request
 	queryOptions := append([]*Options{&Options{Workspace: w.ID}}, options...)
-	nextPage, err := client.get(ctx, "/users", nil, &result, queryOptions...)
+	nextPage, err := client.Get(ctx, "/users", nil, &result, queryOptions...)
 	return result, nextPage, err
 }
 

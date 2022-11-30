@@ -169,7 +169,7 @@ type Project struct {
 func (p *Project) Fetch(ctx context.Context, client *Client, opts ...*Options) error {
 	client.trace("Loading project details for %q", p.Name)
 
-	_, err := client.get(ctx, fmt.Sprintf("/projects/%s", p.ID), nil, p, opts...)
+	_, err := client.Get(ctx, fmt.Sprintf("/projects/%s", p.ID), nil, p, opts...)
 	return err
 }
 
@@ -193,7 +193,7 @@ func (w *Workspace) Projects(ctx context.Context, client *Client, options ...*Op
 	var result []*Project
 
 	// Make the request
-	nextPage, err := client.get(ctx, fmt.Sprintf("/workspaces/%s/projects", w.ID), nil, &result, options...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/workspaces/%s/projects", w.ID), nil, &result, options...)
 	return result, nextPage, err
 }
 
@@ -217,7 +217,7 @@ func (w *Workspace) FavoriteProjects(ctx context.Context, client *Client, option
 	if err != nil {
 		return nil, nil, err
 	}
-	nextPage, err := client.get(ctx, fmt.Sprintf("/users/%s/favorites", user.ID), query, &result, options...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/users/%s/favorites", user.ID), query, &result, options...)
 	return result, nextPage, err
 }
 
@@ -278,7 +278,7 @@ func (t *Team) Projects(ctx context.Context, client *Client, options ...*Options
 	var result []*Project
 
 	// Make the request
-	nextPage, err := client.get(ctx, fmt.Sprintf("/teams/%s/projects", t.ID), nil, &result, options...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/teams/%s/projects", t.ID), nil, &result, options...)
 	return result, nextPage, err
 }
 

@@ -53,7 +53,7 @@ func (t *Task) Attachments(ctx context.Context, client *Client, opts ...*Options
 	var result []*Attachment
 
 	// Make the request
-	nextPage, err := client.get(ctx, fmt.Sprintf("/tasks/%s/attachments", t.ID), nil, &result, opts...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/tasks/%s/attachments", t.ID), nil, &result, opts...)
 	return result, nextPage, err
 }
 

@@ -26,7 +26,7 @@ func (t *Task) TaskStories(ctx context.Context, client *Client, options ...*Opti
 	var result []*TaskStory
 
 	// Make the request
-	nextPage, err := client.get(ctx, fmt.Sprintf("/tasks/%s/stories", t.ID), nil, &result, options...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/tasks/%s/stories", t.ID), nil, &result, options...)
 	return result, nextPage, err
 }
 

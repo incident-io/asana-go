@@ -104,7 +104,7 @@ func mergeQuery(q url.Values, request interface{}) error {
 	return nil
 }
 
-func (c *Client) get(ctx context.Context, path string, data, result interface{}, opts ...*Options) (*NextPage, error) {
+func (c *Client) Get(ctx context.Context, path string, data, result interface{}, opts ...*Options) (*NextPage, error) {
 	requestID := xid.New()
 
 	// Prepare options

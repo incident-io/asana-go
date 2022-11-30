@@ -36,7 +36,7 @@ type Section struct {
 func (s *Section) Fetch(ctx context.Context, client *Client) error {
 	client.trace("Loading section details for %q", s.Name)
 
-	_, err := client.get(ctx, fmt.Sprintf("/sections/%s", s.ID), nil, s)
+	_, err := client.Get(ctx, fmt.Sprintf("/sections/%s", s.ID), nil, s)
 	return err
 }
 
@@ -53,7 +53,7 @@ func (p *Project) Sections(ctx context.Context, client *Client, opts ...*Options
 	var result []*Section
 
 	// Make the request
-	nextPage, err := client.get(ctx, fmt.Sprintf("/projects/%s/sections", p.ID), nil, &result, opts...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/projects/%s/sections", p.ID), nil, &result, opts...)
 	return result, nextPage, err
 }
 

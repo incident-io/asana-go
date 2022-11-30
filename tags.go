@@ -54,7 +54,7 @@ type Tag struct {
 func (t *Tag) Fetch(ctx context.Context, client *Client, options ...*Options) error {
 	client.trace("Loading details for tag %q", t.Name)
 
-	_, err := client.get(ctx, fmt.Sprintf("/tags/%s", t.ID), nil, t, options...)
+	_, err := client.Get(ctx, fmt.Sprintf("/tags/%s", t.ID), nil, t, options...)
 	return err
 }
 
@@ -65,7 +65,7 @@ func (w *Workspace) Tags(ctx context.Context, client *Client, options ...*Option
 	var result []*Tag
 
 	// Make the request
-	nextPage, err := client.get(ctx, fmt.Sprintf("/workspaces/%s/tags", w.ID), nil, &result, options...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/workspaces/%s/tags", w.ID), nil, &result, options...)
 	return result, nextPage, err
 }
 

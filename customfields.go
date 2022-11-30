@@ -212,7 +212,7 @@ type CustomFieldValue struct {
 func (f *CustomField) Fetch(ctx context.Context, client *Client, options ...*Options) error {
 	client.trace("Loading details for custom field %q", f.ID)
 
-	_, err := client.get(ctx, fmt.Sprintf("/custom_fields/%s", f.ID), nil, f, options...)
+	_, err := client.Get(ctx, fmt.Sprintf("/custom_fields/%s", f.ID), nil, f, options...)
 	return err
 }
 
@@ -222,7 +222,7 @@ func (w *Workspace) CustomFields(ctx context.Context, client *Client, options ..
 	var result []*CustomField
 
 	// Make the request
-	nextPage, err := client.get(ctx, fmt.Sprintf("/workspaces/%s/custom_fields", w.ID), nil, &result, options...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/workspaces/%s/custom_fields", w.ID), nil, &result, options...)
 	return result, nextPage, err
 }
 

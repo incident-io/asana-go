@@ -290,7 +290,7 @@ type Task struct {
 func (t *Task) Fetch(ctx context.Context, client *Client) error {
 	client.trace("Loading task details for %q", t.Name)
 
-	_, err := client.get(ctx, fmt.Sprintf("/tasks/%s", t.ID), nil, t)
+	_, err := client.Get(ctx, fmt.Sprintf("/tasks/%s", t.ID), nil, t)
 	return err
 }
 
@@ -434,7 +434,7 @@ func (p *Project) Tasks(ctx context.Context, client *Client, opts ...*Options) (
 	var result []*Task
 
 	// Make the request
-	nextPage, err := client.get(ctx, fmt.Sprintf("/projects/%s/tasks", p.ID), nil, &result, opts...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/projects/%s/tasks", p.ID), nil, &result, opts...)
 	return result, nextPage, err
 }
 
@@ -444,7 +444,7 @@ func (s *Section) Tasks(ctx context.Context, client *Client, opts ...*Options) (
 	var result []*Task
 
 	// Make the request
-	nextPage, err := client.get(ctx, fmt.Sprintf("/sections/%s/tasks", s.ID), nil, &result, opts...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/sections/%s/tasks", s.ID), nil, &result, opts...)
 	return result, nextPage, err
 }
 
@@ -455,7 +455,7 @@ func (t *Task) Subtasks(ctx context.Context, client *Client, opts ...*Options) (
 	var result []*Task
 
 	// Make the request
-	nextPage, err := client.get(ctx, fmt.Sprintf("/tasks/%s/subtasks", t.ID), nil, &result, opts...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/tasks/%s/subtasks", t.ID), nil, &result, opts...)
 	return result, nextPage, err
 }
 
@@ -485,6 +485,6 @@ func (t *Task) CreateSubtask(ctx context.Context, client *Client, task *Task) (*
 func (c *Client) QueryTasks(ctx context.Context, query *TaskQuery, opts ...*Options) ([]*Task, *NextPage, error) {
 	var result []*Task
 
-	nextPage, err := c.get(ctx, "/tasks", query, &result, opts...)
+	nextPage, err := c.Get(ctx, "/tasks", query, &result, opts...)
 	return result, nextPage, err
 }

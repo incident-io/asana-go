@@ -56,7 +56,7 @@ func (w *Workspace) Webhooks(ctx context.Context, client *Client, options ...*Op
 	allOptions := append([]*Options{workspace}, options...)
 
 	// Make the request
-	nextPage, err := client.get(ctx, "/webhooks", nil, &result, allOptions...)
+	nextPage, err := client.Get(ctx, "/webhooks", nil, &result, allOptions...)
 	return result, nextPage, err
 }
 

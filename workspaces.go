@@ -38,7 +38,7 @@ type Workspace struct {
 func (w *Workspace) Fetch(ctx context.Context, client *Client) error {
 	client.trace("Loading details for workspace %s\n", w.ID)
 
-	_, err := client.get(ctx, fmt.Sprintf("/workspaces/%s", w.ID), nil, w)
+	_, err := client.Get(ctx, fmt.Sprintf("/workspaces/%s", w.ID), nil, w)
 	return err
 }
 
@@ -49,7 +49,7 @@ func (c *Client) Workspaces(ctx context.Context, options ...*Options) ([]*Worksp
 	var result []*Workspace
 
 	// Make the request
-	nextPage, err := c.get(ctx, "/workspaces", nil, &result, options...)
+	nextPage, err := c.Get(ctx, "/workspaces", nil, &result, options...)
 	return result, nextPage, err
 }
 

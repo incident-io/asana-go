@@ -29,7 +29,7 @@ func (t *Team) Fetch(ctx context.Context, client *Client) error {
 	client.trace("Loading team details for %q\n", t.Name)
 
 	// Use fields options to request Organization field which is not returned by default
-	_, err := client.get(ctx, fmt.Sprintf("/teams/%s", t.ID), nil, t, Fields(*t))
+	_, err := client.Get(ctx, fmt.Sprintf("/teams/%s", t.ID), nil, t, Fields(*t))
 	return err
 }
 
@@ -39,7 +39,7 @@ func (w *Workspace) Teams(ctx context.Context, client *Client, options ...*Optio
 	var result []*Team
 
 	// Make the request
-	nextPage, err := client.get(ctx, fmt.Sprintf("/organizations/%s/teams", w.ID), nil, &result, options...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/organizations/%s/teams", w.ID), nil, &result, options...)
 	return result, nextPage, err
 }
 

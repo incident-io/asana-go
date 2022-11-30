@@ -157,7 +157,7 @@ func (t *Task) Stories(ctx context.Context, client *Client, opts ...*Options) ([
 	var result []*Story
 
 	// Make the request
-	nextPage, err := client.get(ctx, fmt.Sprintf("/tasks/%s/stories", t.ID), nil, &result, opts...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/tasks/%s/stories", t.ID), nil, &result, opts...)
 	return result, nextPage, err
 }
 
@@ -175,7 +175,7 @@ func (t *Task) CreateComment(ctx context.Context, client *Client, story *StoryBa
 func (s *Story) Fetch(ctx context.Context, client *Client) error {
 	client.trace("Loading story details for %q", s.ID)
 
-	_, err := client.get(ctx, fmt.Sprintf("/stories/%s", s.ID), nil, s)
+	_, err := client.Get(ctx, fmt.Sprintf("/stories/%s", s.ID), nil, s)
 	return err
 }
 

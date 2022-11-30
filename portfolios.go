@@ -22,6 +22,6 @@ func (w *Workspace) Portfolios(ctx context.Context, client *Client, options ...*
 	}
 
 	// Make the request
-	nextPage, err := client.get(ctx, fmt.Sprintf("/portfolios"), nil, &result, append(options, o)...)
+	nextPage, err := client.Get(ctx, fmt.Sprintf("/portfolios"), nil, &result, append(options, o)...)
 	return result, nextPage, err
 }

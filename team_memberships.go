@@ -30,6 +30,6 @@ func (t *TeamMembership) Fetch(ctx context.Context, client *Client) error {
 	client.trace("Loading team membership details for %q\n", t.ID)
 
 	// Use fields options to request Organization field which is not returned by default
-	_, err := client.get(ctx, fmt.Sprintf("/team_memberships/%s", t.ID), nil, t, Fields(*t))
+	_, err := client.Get(ctx, fmt.Sprintf("/team_memberships/%s", t.ID), nil, t, Fields(*t))
 	return err
 }
