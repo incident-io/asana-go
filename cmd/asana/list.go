@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	asana "github.com/SnoozeThis-org/asana-go"
+	asana "github.com/incident-io/asana-go"
 )
 
 func ListWorkspaces(ctx context.Context, c *asana.Client) error {

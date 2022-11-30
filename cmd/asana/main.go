@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/jessevdk/go-flags"
 	"log"
 	"mime"
 	"net/http"
@@ -12,7 +11,9 @@ import (
 	"os"
 	"path/filepath"
 
-	asana "github.com/SnoozeThis-org/asana-go"
+	"github.com/jessevdk/go-flags"
+
+	asana "github.com/incident-io/asana-go"
 )
 
 var options struct {

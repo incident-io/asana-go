@@ -1,5 +1,5 @@
 // Package asana provides a client for the Asana API
-package asana // import "github.com/SnoozeThis-org/asana-go"
+package asana // import "github.com/incident-io/asana-go"
 
 import (
 	"bytes"

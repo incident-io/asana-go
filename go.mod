@@ -1,4 +1,4 @@
-module github.com/SnoozeThis-org/asana-go
+module github.com/incident-io/asana-go
 
 go 1.14
 
