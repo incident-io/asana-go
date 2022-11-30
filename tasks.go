@@ -201,6 +201,9 @@ type Task struct {
 
 	TaskBase
 
+	// Read-only. Link to the Asana UI for this task
+	PermalinkURL string `json:"permalink_url,omitempty"`
+
 	// Read-only. The task this object is attached to.
 	Parent *Task `json:"parent,omitempty"`
 
